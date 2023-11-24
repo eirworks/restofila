@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\RestaurantResource\RelationManagers;
 
+use App\Models\Menu;
 use App\Models\MenuGroup;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -10,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Collection;
 
 class MenusRelationManager extends RelationManager
 {
@@ -49,7 +51,8 @@ class MenusRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('menuGroup.name')
                     ->badge()
                     ->label('Group'),
@@ -62,7 +65,8 @@ class MenusRelationManager extends RelationManager
             ])
             ->defaultSort('id', 'desc')
             ->filters([
-                //
+                Tables\Filters\Filter::make('available')
+                    ->query(fn (Builder $query): Builder => $query->where('available', true)),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
@@ -70,10 +74,19 @@ class MenusRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('toggle-available')
+                    ->label(fn (Menu $record) => $record->available ? 'Set Unavailable' : 'Set Available')
+                    ->icon(fn (Menu $record) => $record->available ? 'heroicon-s-x-mark' : 'heroicon-s-check')
+                    ->color(fn(Menu $record) => $record->available ? 'danger' : 'success')
+                    ->action(fn (Menu $record) => $record->update(['available' => ! $record->available])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('toggle-available')
+                        ->label('Toggle Available')
+                        ->icon('heroicon-s-check')
+                        ->action(fn(Collection $records) => $records->each->update(['available' => ! $records->first()->available])),
                 ]),
             ]);
     }
