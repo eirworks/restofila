@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RestaurantResource\Pages;
 use App\Filament\Resources\RestaurantResource\RelationManagers;
+use App\Filament\Resources\RestaurantResource\Widgets\RestoStat;
 use App\Models\Restaurant;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -69,6 +70,7 @@ class RestaurantResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('category.name')->badge(),
                 Tables\Columns\IconColumn::make('active')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('menus_count')
@@ -133,5 +135,12 @@ class RestaurantResource extends Resource
                     TextEntry::make('description')
                 ])
             ]);
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            RestoStat::class,
+        ];
     }
 }

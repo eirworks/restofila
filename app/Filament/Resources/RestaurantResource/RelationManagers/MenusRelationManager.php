@@ -70,6 +70,22 @@ class MenusRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
+                Tables\Actions\Action::make('upload-menus')
+                    ->label("Upload Menus")
+                    ->form([
+                        Forms\Components\Section::make()->schema([
+                            Forms\Components\FileUpload::make('menus')
+                                ->hint("Upload .csv or .xlsx file")
+                                ->acceptedFileTypes(['csv', 'xlsx']),
+                            Forms\Components\Select::make('menu_group_id')
+                                ->label("Menu Group")
+                                ->searchable()
+                                ->preload()
+                                ->relationship('menuGroup', 'name', function (Builder $query) {
+                                    $query->where('restaurant_id', $this->getOwnerRecord()->id);
+                                })
+                        ])
+                    ])
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
